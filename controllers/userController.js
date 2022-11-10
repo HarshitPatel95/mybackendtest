@@ -101,7 +101,7 @@ const updateProfile = asyncHandler(async (req, res) => {
   }
 
   // Make sure the logged in user matches the user
-  if (user.user.toString() !== req.user.id) {
+  if (user._id.toString() !== req.user.id) {
     res.status(401);
     throw new Error("User not authorized");
   }
