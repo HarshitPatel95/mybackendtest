@@ -78,8 +78,54 @@ const loginUser = asyncHandler(async (req, res) => {
 // @desc    Get user data
 // @route   GET /api/users/me
 // @access  Private
-const getMe = asyncHandler(async (req, res) => {
+const getProfile = asyncHandler(async (req, res) => {
   res.status(200).json(req.user);
+});
+
+// @desc    Update User Profile
+// @route   PUT /api/users/:id
+// @access  Private
+const updateProfile = asyncHandler(async (req, res) => {
+  const { name, email, password, dob, contact_no, gender } = req.body;
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    res.status(400);
+    throw new Error("User not found");
+  }
+
+  // Check for user
+  if (!req.user) {
+    res.status(401);
+    throw new Error("User not found");
+  }
+
+  // Make sure the logged in user matches the user
+  if (user.user.toString() !== req.user.id) {
+    res.status(401);
+    throw new Error("User not authorized");
+  }
+
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const hashedPassword = await bcrypt.hash(password, salt);
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.params.id,
+    {
+      name,
+      email,
+      password: hashedPassword,
+      dob,
+      contact_no,
+      gender,
+    },
+    {
+      new: true,
+    }
+  );
+
+  res.status(200).json(updatedUser);
 });
 
 // Generate JWT
@@ -92,5 +138,6 @@ const generateToken = (id) => {
 module.exports = {
   registerUser,
   loginUser,
-  getMe,
+  getProfile,
+  updateProfile,
 };
